@@ -38,7 +38,7 @@ class MainActivity : BaseMainActivity() {
 
     override fun getPresenter(): BasePresenter<*> = mainActivityPresenter
 
-    lateinit var viewModel: ViewModel
+    private lateinit var viewModel: ViewModel
 
     private var isRestored = false
 
@@ -56,17 +56,17 @@ class MainActivity : BaseMainActivity() {
 
     private fun restoreViewModel() {
 
-        if (viewModel.result != RESULT_DEFAULT_VALUE) {
+        isRestored = if (viewModel.result != RESULT_DEFAULT_VALUE) {
 
             Log.i(TAG, "Restore | restored")
 
             showResult(viewModel.result)
 
-            isRestored = true
+            true
 
         } else {
 
-            isRestored = false
+            false
 
         }
 
@@ -127,13 +127,21 @@ class MainActivity : BaseMainActivity() {
 
     override fun hideProgressBar() {
 
-        activity_main__pb.visibility = View.INVISIBLE
+        Log.i(TAG, "ProgressBar | hide progress bar")
+
+        activity_main__pi_calc.stopDrawing()
+
+        /*activity_main__pb.visibility = View.INVISIBLE*/
 
     }
 
     override fun showProgressBar() {
 
-        activity_main__pb.visibility = View.VISIBLE
+        Log.i(TAG, "ProgressBar | show progress bar")
+
+        activity_main__pi_calc.drawPoints()
+
+        /*activity_main__pb.visibility = View.VISIBLE*/
 
     }
 

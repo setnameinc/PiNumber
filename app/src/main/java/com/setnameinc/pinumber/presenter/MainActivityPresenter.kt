@@ -37,7 +37,7 @@ class MainActivityPresenter @Inject constructor() : BaseMainActivityPresenter<Ma
     override fun calculateInBackground(long: Long): Disposable =
         Observable.just(long)
             .flatMap { Observable.fromCallable { calculate(it) } }
-            .subscribeOn(Schedulers.io())
+            .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe{view.showProgressBar()}
             .doOnTerminate{view.hideProgressBar()}

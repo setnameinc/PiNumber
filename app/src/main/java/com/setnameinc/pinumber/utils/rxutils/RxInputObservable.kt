@@ -3,14 +3,13 @@ package com.setnameinc.pinumber.utils.rxutils
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
-import com.google.android.material.textfield.TextInputEditText
 import io.reactivex.subjects.PublishSubject
 
 class RxSearchObservable {
 
     companion object {
 
-        fun fromView(editText: TextInputEditText): PublishSubject<String> {
+        fun fromView(editText: EditText): PublishSubject<String> {
 
             val subject = PublishSubject.create<String>()
 
