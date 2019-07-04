@@ -28,9 +28,6 @@ class MainActivity : BaseMainActivity() {
     @Inject
     lateinit var presenter: MainActivityPresenter
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
-
     override fun inject() {
         App.appComponent.inject(this)
     }
@@ -39,91 +36,50 @@ class MainActivity : BaseMainActivity() {
 
     private lateinit var viewModel: ViewModel
 
-    private var isRestored = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory)[ViewModel::class.java]
+        Log.i(TAG, "onCreate")
 
-        restoreViewModel()
+        viewModel = ViewModelProviders.of(this)[ViewModel::class.java]
+
         initResultListener()
 
     }
 
-    private fun restoreViewModel() {
+    override fun initResultListener(){
+        viewModel.result.observe(this, Observer {
 
-        if (viewModel.left != 0L) {
-
-            presenter.test()
-
-        } else if (viewModel.result != RESULT_DEFAULT_VALUE){
-
-            Log.i(TAG, "Restore | restored")
-
-            showResult(viewModel.result)
-
-            isRestored = true
-
-        } else {
-
-            isRestored = false
-
-        }
-
-    }
-
-    override fun initResultListener() {
-
-        viewModel.amount.observe(this, Observer {
-
-            Log.i(TAG, "ResultListener | observer invoked")
-
-            //dirty
-            if (!isRestored) {
-
-                presenter.updateAmountOfNumbers(it)
-
-
-            }
+            activity_main__result_field.text = "$it"
 
         })
-
     }
 
     override fun initEditTextListener(): Disposable = RxSearchObservable.fromView(activity_main__til_field)
         .debounce(1500, TimeUnit.MILLISECONDS)
+        .filter {
+            it.isNotEmpty() && it.toLong() != viewModel.amount && !viewModel.isLoading
+        }
         .distinctUntilChanged()
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe {
 
-            if (it.isNotEmpty()) {
+            Log.i(TAG, "EditorListener | listener invoked")
 
-                if (viewModel.amount.value != it.toLong()) {
+            presenter.updateAmountOfNumbers(it.toLong())
 
-                    Log.i(TAG, "EditorListener | non equals")
-
-                    isRestored = false
-
-                    viewModel.amount.value = it.toLong()
-
-                }
-
-            }
+            viewModel.amount = it.toLong()
 
         }
 
-    override fun showResult(result: Double) {
-
-        activity_main__result_field.text = "$result"
-
-    }
 
     override fun saveResult(result: Double) {
 
-        viewModel.result = result
+        viewModel.result.value = result
+
+        Log.i(TAG, "SaveResult | save result = $result")
 
     }
 
@@ -133,6 +89,8 @@ class MainActivity : BaseMainActivity() {
 
         activity_main__pi_calc.stopDrawing()
 
+        viewModel.isLoading = false
+
     }
 
     override fun showPiProgress() {
@@ -141,25 +99,9 @@ class MainActivity : BaseMainActivity() {
 
         activity_main__pi_calc.drawPoints()
 
+        viewModel.isLoading = true
+
     }
-
-    override fun saveTotalAmount(long: Long) {
-        viewModel.totalAmount = long
-    }
-
-    override fun saveInRound(long: Long) {
-        viewModel.inRound = long
-    }
-
-    override fun saveLeft(long: Long) {
-        viewModel.left = long
-    }
-
-    override fun getTotalAmount(): Long = viewModel.totalAmount
-
-    override fun getInRound(): Long = viewModel.inRound
-
-    override fun getLeft(): Long = viewModel.left
 
 }
 
@@ -168,27 +110,17 @@ interface MainActivityView : BaseView, ViewModelInteractions, MainActivityViewPi
     fun initEditTextListener(): Disposable
     fun initResultListener()
 
-    fun showResult(result: Double)
-
 }
 
-interface MainActivityViewPiProgress{
+interface MainActivityViewPiProgress {
 
     fun showPiProgress()
     fun hidePiProgress()
 
 }
 
-interface ViewModelInteractions{
+interface ViewModelInteractions {
 
     fun saveResult(result: Double)
-
-    fun saveTotalAmount(long: Long)
-    fun saveInRound(long: Long)
-    fun saveLeft(long: Long)
-
-    fun getTotalAmount():Long
-    fun getInRound():Long
-    fun getLeft():Long
 
 }

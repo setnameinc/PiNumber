@@ -21,7 +21,7 @@ class PiCalculatingProgressView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    lateinit var piCalculatingProgressViewViewModel: PiCalculatingProgressViewViewModel
+    private lateinit var piCalculatingProgressViewViewModel: PiCalculatingProgressViewViewModel
 
     private val TAG = this::class.java.simpleName
 
