@@ -27,8 +27,6 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     private val TAG = this::class.java.simpleName
 
-    private var job: Job? = null
-
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onAttachedToWindow() {
@@ -80,12 +78,13 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
             viewModel.setOfCoordinates.clear()
 
-            job?.cancel()
+            viewModel.compositeJob?.cancel()
+
+
+            startDraw()
 
             viewModel.isDrawingNow = true
             viewModel.isDrawn = false
-
-            startDraw()
 
         }
 
@@ -93,27 +92,19 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     fun detach() {
 
-        job?.cancel()
-
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-
-        Log.i(TAG, "OnDetached | ")
+        viewModel.compositeJob?.cancel()
 
     }
 
     private fun startDraw() {
 
-        if (viewModel.isDrawingNow && job?.isCancelled == null) {
+        Log.i(TAG, "StartDraw | is cancelled = ${viewModel.compositeJob.hashCode()}, is drawing now = ${viewModel.isDrawingNow}")
 
-            Log.i(TAG, "StartDraw | new coroutine")
+        /*if (job?.isCancelled == null || (viewModel.isDrawingNow && job?.isCancelled == true)) {*/
 
+        Log.i(TAG, "StartDraw | new coroutine")
 
-        }
-
-        job = coroutineScope.launch {
+        viewModel.compositeJob.add(coroutineScope.launch {
 
             repeat(500) {
 
@@ -126,7 +117,9 @@ class PiCalculatingProgressView @JvmOverloads constructor(
                 delay(50)
 
             }
-        }
+        })
+
+        /*}*/
 
 
     }
@@ -138,7 +131,7 @@ class PiCalculatingProgressView @JvmOverloads constructor(
         viewModel.isDrawingNow = false
         viewModel.isDrawn = true
 
-        job?.cancel()
+        viewModel.compositeJob?.cancel()
 
         Log.i(TAG, "StopDrawing | list size is ${viewModel.setOfCoordinates.size}")
 
@@ -156,7 +149,7 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
             viewModel.setOfCoordinates.clear()
 
-            job?.cancel()
+            viewModel.compositeJob.cancel()
 
             if (viewModel.isDrawingNow) {
 
@@ -230,4 +223,23 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     }
 
+}
+
+class CompositeJob {
+
+    private val map = hashMapOf<String, Job>()
+
+    fun add(job: Job, key: String = job.hashCode().toString()) = map.put(key, job)?.cancel()
+
+    fun cancel(key: String) = map[key]?.cancel()
+
+    fun cancel() {
+
+        for (i in map) {
+
+            cancel(i.key)
+
+        }
+
+    }
 }
