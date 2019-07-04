@@ -7,6 +7,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.pow
@@ -27,31 +30,34 @@ class PiResolver @Inject constructor() : PiResolverInterface {
 
     }
 
-    override fun startResolve(amount: Long) {
+    override fun startResolve(amount: Int) {
 
+        disposableBag.clear()
         disposableBag.add(calculateInBackground(amount))
 
     }
 
-    private fun calculateInBackground(long: Long): Disposable =
-        Observable.fromCallable { calculate(long) }
+    private fun calculateInBackground(amount: Int): Disposable =
+        Observable.fromCallable { calculate(amount) }
             .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe { presenterInterface.showPiProgress() }
             .doOnTerminate { presenterInterface.hidePiProgress() }
+            .doOnDispose { presenterInterface.hidePiProgress() }
             .subscribe {
 
-                presenterInterface.saveResult(it)
+                    presenterInterface.saveResult(it)
 
-                Log.i(TAG, "resolved")
+                    Log.i(TAG, "resolved")
+
 
             }
 
 
-    private fun calculate(long: Long): Double {
+    private fun calculate(long: Int): Double {
 
-        var totalAmount = 0
-        var countInRound = 0
+        // speed 1 (medium)
+        /* var countInRound = 0
 
         for (i in 0..long) {
 
@@ -62,11 +68,18 @@ class PiResolver @Inject constructor() : PiResolverInterface {
                 countInRound++
             }
 
-            totalAmount++
-
         }
 
-        return 4.toDouble() * countInRound / totalAmount
+        return 4.toDouble() * countInRound / long */
+        //speed 2 (fast)
+        val sequence = Array<Pair<Float, Float>>(long) { Random().nextFloat() to Random().nextFloat() }
+
+        val ans =
+            sequence.filter { Math.sqrt(it.first.toDouble().pow(2.toDouble()) + it.second.toDouble().pow(2.toDouble())) <= 1 }
+                .count()
+
+        return 4.toDouble() * ans / long
+
 
     }
 
@@ -75,6 +88,6 @@ class PiResolver @Inject constructor() : PiResolverInterface {
 interface PiResolverInterface {
 
     fun initResolver(mainActivityPresenterInterface: MainActivityPresenterPiResolver)
-    fun startResolve(amount: Long)
+    fun startResolve(amount: Int)
 
 }

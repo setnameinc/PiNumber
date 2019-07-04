@@ -14,6 +14,7 @@ import com.setnameinc.pinumber.presenter.MainActivityPresenter
 import com.setnameinc.pinumber.utils.constants.ViewModel.RESULT_DEFAULT_VALUE
 import com.setnameinc.pinumber.utils.rxutils.RxSearchObservable
 import com.setnameinc.pinumber.viewmodels.ViewModel
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -59,7 +60,7 @@ class MainActivity : BaseMainActivity() {
     override fun initEditTextListener(): Disposable = RxSearchObservable.fromView(activity_main__til_field)
         .debounce(1500, TimeUnit.MILLISECONDS)
         .filter {
-            it.isNotEmpty() && it.toLong() != viewModel.amount && !viewModel.isLoading
+            it.isNotEmpty() && it.toLong() != viewModel.amount
         }
         .distinctUntilChanged()
         .subscribeOn(Schedulers.io())
@@ -68,7 +69,7 @@ class MainActivity : BaseMainActivity() {
 
             Log.i(TAG, "EditorListener | listener invoked")
 
-            presenter.updateAmountOfNumbers(it.toLong())
+            presenter.updateAmountOfNumbers(it.toInt())
 
             viewModel.amount = it.toLong()
 
@@ -89,8 +90,6 @@ class MainActivity : BaseMainActivity() {
 
         activity_main__pi_calc.stopDrawing()
 
-        viewModel.isLoading = false
-
     }
 
     override fun showPiProgress() {
@@ -98,8 +97,6 @@ class MainActivity : BaseMainActivity() {
         Log.i(TAG, "ProgressBar | show progress bar")
 
         activity_main__pi_calc.drawPoints()
-
-        viewModel.isLoading = true
 
     }
 

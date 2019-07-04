@@ -17,7 +17,7 @@ class MainActivityPresenter @Inject constructor(private val piResolver: PiResolv
 
     private val disposeBag = CompositeDisposable()
 
-    private val amountOfNumbers = PublishSubject.create<Long>()
+    private val amountOfNumbers = PublishSubject.create<Int>()
 
     init {
 
@@ -25,9 +25,9 @@ class MainActivityPresenter @Inject constructor(private val piResolver: PiResolv
 
     }
 
-    override fun updateAmountOfNumbers(long: Long) {
+    override fun updateAmountOfNumbers(int: Int) {
 
-        amountOfNumbers.onNext(long)
+        amountOfNumbers.onNext(int)
 
     }
 
@@ -73,7 +73,7 @@ interface MainActivityPresenterInterface : MainActivityPresenterPiResolver {
 
     fun subscribeToAmountOfNumbers(): Disposable
 
-    fun updateAmountOfNumbers(long: Long)
+    fun updateAmountOfNumbers(int: Int)
 
 }
 

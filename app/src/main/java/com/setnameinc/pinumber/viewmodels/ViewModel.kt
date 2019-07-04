@@ -8,6 +8,5 @@ class ViewModel @Inject constructor() : ViewModel(){
 
     var amount:Long = 0
     var result = MutableLiveData<Double>()
-    var isLoading = false
 
 }
