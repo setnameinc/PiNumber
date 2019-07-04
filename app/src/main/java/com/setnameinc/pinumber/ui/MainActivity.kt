@@ -2,7 +2,6 @@ package com.setnameinc.pinumber.ui
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
@@ -27,7 +26,7 @@ class MainActivity : BaseMainActivity() {
     private val TAG = this::class.java.simpleName
 
     @Inject
-    lateinit var mainActivityPresenter: MainActivityPresenter
+    lateinit var presenter: MainActivityPresenter
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -36,14 +35,13 @@ class MainActivity : BaseMainActivity() {
         App.appComponent.inject(this)
     }
 
-    override fun getPresenter(): BasePresenter<*> = mainActivityPresenter
+    override fun getPresenter(): BasePresenter<*> = presenter
 
     private lateinit var viewModel: ViewModel
 
     private var isRestored = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -56,17 +54,21 @@ class MainActivity : BaseMainActivity() {
 
     private fun restoreViewModel() {
 
-        isRestored = if (viewModel.result != RESULT_DEFAULT_VALUE) {
+        if (viewModel.left != 0L) {
+
+            presenter.test()
+
+        } else if (viewModel.result != RESULT_DEFAULT_VALUE){
 
             Log.i(TAG, "Restore | restored")
 
             showResult(viewModel.result)
 
-            true
+            isRestored = true
 
         } else {
 
-            false
+            isRestored = false
 
         }
 
@@ -81,7 +83,7 @@ class MainActivity : BaseMainActivity() {
             //dirty
             if (!isRestored) {
 
-                mainActivityPresenter.updateAmountOfNumbers(it)
+                presenter.updateAmountOfNumbers(it)
 
 
             }
@@ -119,44 +121,74 @@ class MainActivity : BaseMainActivity() {
 
     }
 
-    override fun setResult(result: Double) {
+    override fun saveResult(result: Double) {
 
         viewModel.result = result
 
     }
 
-    override fun hideProgressBar() {
+    override fun hidePiProgress() {
 
         Log.i(TAG, "ProgressBar | hide progress bar")
 
         activity_main__pi_calc.stopDrawing()
 
-        /*activity_main__pb.visibility = View.INVISIBLE*/
-
     }
 
-    override fun showProgressBar() {
+    override fun showPiProgress() {
 
         Log.i(TAG, "ProgressBar | show progress bar")
 
         activity_main__pi_calc.drawPoints()
 
-        /*activity_main__pb.visibility = View.VISIBLE*/
-
     }
+
+    override fun saveTotalAmount(long: Long) {
+        viewModel.totalAmount = long
+    }
+
+    override fun saveInRound(long: Long) {
+        viewModel.inRound = long
+    }
+
+    override fun saveLeft(long: Long) {
+        viewModel.left = long
+    }
+
+    override fun getTotalAmount(): Long = viewModel.totalAmount
+
+    override fun getInRound(): Long = viewModel.inRound
+
+    override fun getLeft(): Long = viewModel.left
 
 }
 
-interface MainActivityView : BaseView {
+interface MainActivityView : BaseView, ViewModelInteractions, MainActivityViewPiProgress {
 
     fun initEditTextListener(): Disposable
     fun initResultListener()
 
     fun showResult(result: Double)
 
-    fun showProgressBar()
-    fun hideProgressBar()
+}
 
-    fun setResult(result: Double)
+interface MainActivityViewPiProgress{
+
+    fun showPiProgress()
+    fun hidePiProgress()
+
+}
+
+interface ViewModelInteractions{
+
+    fun saveResult(result: Double)
+
+    fun saveTotalAmount(long: Long)
+    fun saveInRound(long: Long)
+    fun saveLeft(long: Long)
+
+    fun getTotalAmount():Long
+    fun getInRound():Long
+    fun getLeft():Long
 
 }

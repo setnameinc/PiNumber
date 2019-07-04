@@ -10,4 +10,8 @@ class ViewModel @Inject constructor() : ViewModel(){
     val amount:MutableLiveData<Long> = MutableLiveData()
     var result:Double = RESULT_DEFAULT_VALUE
 
+    var totalAmount:Long = 0
+    var inRound:Long = 0
+    var left:Long = 0
+
 }

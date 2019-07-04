@@ -25,6 +25,8 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     private val TAG = this::class.java.simpleName
 
+    private var isFirstInit = true
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
@@ -88,6 +90,8 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
         piCalculatingProgressViewViewModel.setOfCoords.clear()
 
+        isFirstInit = true
+
         animator.start()
 
     }
@@ -96,18 +100,21 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
         animator.cancel()
 
+        isFirstInit = false
+
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
-        if (piCalculatingProgressViewViewModel.setOfCoords.size > 0) {
+        // if something was drawn
+        if (piCalculatingProgressViewViewModel.setOfCoords.size > 0 && isFirstInit) {
 
             val listSize = piCalculatingProgressViewViewModel.setOfCoords.size
 
             piCalculatingProgressViewViewModel.setOfCoords.clear()
 
-            for (i in 0..listSize){
+            for (i in 0..listSize) {
 
                 randomInit()
 
@@ -116,6 +123,8 @@ class PiCalculatingProgressView @JvmOverloads constructor(
             invalidate()
 
         }
+
+        isFirstInit = false
 
     }
 
