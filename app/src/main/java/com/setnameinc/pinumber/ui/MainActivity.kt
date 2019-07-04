@@ -57,6 +57,11 @@ class MainActivity : BaseMainActivity() {
         })
     }
 
+    override fun onStop() {
+        activity_main__pi_calc.detach()
+        super.onStop()
+    }
+
     override fun initEditTextListener(): Disposable = RxSearchObservable.fromView(activity_main__til_field)
         .debounce(1500, TimeUnit.MILLISECONDS)
         .filter {
@@ -79,6 +84,8 @@ class MainActivity : BaseMainActivity() {
     override fun saveResult(result: Double) {
 
         viewModel.result.value = result
+
+        activity_main__pi_calc.detach()
 
         Log.i(TAG, "SaveResult | save result = $result")
 

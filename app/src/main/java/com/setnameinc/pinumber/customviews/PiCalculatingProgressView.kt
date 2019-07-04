@@ -11,7 +11,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProviders
 import com.setnameinc.pinumber.R
 import com.setnameinc.pinumber.viewmodels.PiCalculatingProgressViewViewModel
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.*
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -28,7 +27,9 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     private val TAG = this::class.java.simpleName
 
-    private var job:Job? = null
+    private var job: Job? = null
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -52,24 +53,20 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     private fun randomInit() {
 
-        for (i in 0..numberOfPointPerPeriod) {
+        val coordX = Random.nextInt(width).toFloat()
+        val coordY = Random.nextInt(height).toFloat()
 
-            val coordX = Random.nextInt(width).toFloat()
-            val coordY = Random.nextInt(height).toFloat()
+        val isInCircle = sqrt(
+            Math.pow(
+                coordX.toDouble() - width / 2,
+                2.toDouble()
+            )
+                    + Math.pow(coordY.toDouble() - height / 2, 2.toDouble())
+        ) <= Math.min(width, height) / 2
 
-            val isInCircle = sqrt(
-                Math.pow(
-                    coordX.toDouble() - width / 2,
-                    2.toDouble()
-                )
-                        + Math.pow(coordY.toDouble() - height / 2, 2.toDouble())
-            ) <= Math.min(width, height) / 2
+        if (!viewModel.setOfCoordinates.contains((coordX to coordY) to isInCircle)) {
 
-            if (!viewModel.setOfCoordinates.contains((coordX to coordY) to isInCircle)) {
-
-                viewModel.setOfCoordinates.add((coordX to coordY) to isInCircle)
-
-            }
+            viewModel.setOfCoordinates.add((coordX to coordY) to isInCircle)
 
         }
 
@@ -77,35 +74,60 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     fun drawPoints() {
 
-        Log.i(TAG, "DrawPoint | start")
+        if (!viewModel.isDrawingNow) {
 
-        if (!viewModel.isAvailableForDrawing) {
+            Log.i(TAG, "DrawPoint | start")
 
             viewModel.setOfCoordinates.clear()
 
-            startDraw()
+            job?.cancel()
 
-            viewModel.isAvailableForDrawing = true
+            viewModel.isDrawingNow = true
+            viewModel.isDrawn = false
+
+            startDraw()
 
         }
 
     }
 
-    private fun startDraw(){
+    fun detach() {
 
-        //it's faster than thread
-        job = CoroutineScope(Dispatchers.Main).launch {
+        job?.cancel()
 
-            val job = repeat(20) {
+    }
 
-                randomInit()
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+
+        Log.i(TAG, "OnDetached | ")
+
+    }
+
+    private fun startDraw() {
+
+        if (viewModel.isDrawingNow && job?.isCancelled == null) {
+
+            Log.i(TAG, "StartDraw | new coroutine")
+
+
+        }
+
+        job = coroutineScope.launch {
+
+            repeat(500) {
+
+                for (i in 0..numberOfPointPerPeriod) {
+                    randomInit()
+                }
+
                 invalidate()
 
                 delay(50)
 
             }
-
         }
+
 
     }
 
@@ -113,9 +135,12 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
         Log.i(TAG, "StopDrawing | stop")
 
+        viewModel.isDrawingNow = false
+        viewModel.isDrawn = true
+
         job?.cancel()
 
-        viewModel.isAvailableForDrawing = false
+        Log.i(TAG, "StopDrawing | list size is ${viewModel.setOfCoordinates.size}")
 
     }
 
@@ -123,27 +148,46 @@ class PiCalculatingProgressView @JvmOverloads constructor(
         super.onLayout(changed, left, top, right, bottom)
 
         // if something was drawn
-        if (viewModel.setOfCoordinates.size > 0 /*&& !viewModel.isAvailableForDrawing*/) {
-
-            Log.i(TAG, "onLayout | ")
+        if (viewModel.setOfCoordinates.size > 0) {
 
             val listSize = viewModel.setOfCoordinates.size
 
+            Log.i(TAG, "OnLayout | list size is ${viewModel.setOfCoordinates.size}")
+
             viewModel.setOfCoordinates.clear()
 
-            CoroutineScope(Dispatchers.Main).launch {
+            job?.cancel()
 
-                job?.cancel()
+            if (viewModel.isDrawingNow) {
 
-                for (i in 0..listSize / numberOfPointPerPeriod) {
+                //update and start
+                CoroutineScope(Dispatchers.Main).launch {
 
-                    randomInit()
+                    for (i in 0..listSize) {
+
+                        randomInit()
+
+                    }
+
+                    invalidate()
 
                 }
 
-                invalidate()
-
                 startDraw()
+
+            } else if (viewModel.isDrawn) {
+
+                CoroutineScope(Dispatchers.Main).launch {
+
+                    for (i in 0 until listSize) {
+
+                        randomInit()
+
+                    }
+
+                    invalidate()
+
+                }
 
             }
 
@@ -154,12 +198,16 @@ class PiCalculatingProgressView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        for (item in viewModel.setOfCoordinates) {
+        if (viewModel.isDrawingNow || viewModel.isDrawn) {
 
-            if (item.second) {
-                canvas?.drawPoint(item.first.first, item.first.second, inTheAreaPointPaint)
-            } else {
-                canvas?.drawPoint(item.first.first, item.first.second, outTheAreaPointPaint)
+            for (item in viewModel.setOfCoordinates) {
+
+                if (item.second) {
+                    canvas?.drawPoint(item.first.first, item.first.second, inTheAreaPointPaint)
+                } else {
+                    canvas?.drawPoint(item.first.first, item.first.second, outTheAreaPointPaint)
+                }
+
             }
 
         }
