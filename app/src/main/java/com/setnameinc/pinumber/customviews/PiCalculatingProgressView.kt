@@ -6,10 +6,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 import android.view.animation.LinearInterpolator
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProviders
 import com.setnameinc.pinumber.R
+import com.setnameinc.pinumber.viewmodels.PiCalculatingProgressViewViewModel
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -19,9 +21,17 @@ class PiCalculatingProgressView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    lateinit var piCalculatingProgressViewViewModel: PiCalculatingProgressViewViewModel
+
     private val TAG = this::class.java.simpleName
 
-    private val setOfCoords = mutableSetOf<Pair<Pair<Float, Float>, Boolean>>()
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+
+        piCalculatingProgressViewViewModel =
+            ViewModelProviders.of(context as FragmentActivity)[PiCalculatingProgressViewViewModel::class.java]
+
+    }
 
     private var inTheAreaPointPaint = Paint(ANTI_ALIAS_FLAG).apply {
         color = resources.getColor(R.color.inTheArea)
@@ -43,23 +53,7 @@ class PiCalculatingProgressView @JvmOverloads constructor(
         addUpdateListener {
 
             for (i in 0..Random.nextInt(10) + 1) {
-
-                val coordX = Random.nextInt(width).toFloat()
-                val coordY = Random.nextInt(height).toFloat()
-
-                val isInCircle = sqrt(
-                    Math.pow(
-                        coordX.toDouble() - width / 2,
-                        2.toDouble()
-                    ) + Math.pow(coordY.toDouble() - height / 2, 2.toDouble())
-                ) <= height / 2
-
-                if (!setOfCoords.contains((coordX to coordY) to isInCircle)) {
-
-                    setOfCoords.add((coordX to coordY) to isInCircle)
-
-                }
-
+                randomInit()
             }
 
             invalidate()
@@ -68,9 +62,31 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     }
 
+    private fun randomInit() {
+
+        val coordX = Random.nextInt(width).toFloat()
+        val coordY = Random.nextInt(height).toFloat()
+
+        val isInCircle = sqrt(
+            Math.pow(
+                coordX.toDouble() - width / 2,
+                2.toDouble()
+            )
+                    + Math.pow(coordY.toDouble() - height / 2, 2.toDouble())
+        ) <= Math.min(width, height) / 2
+
+        if (!piCalculatingProgressViewViewModel.setOfCoords.contains((coordX to coordY) to isInCircle)) {
+
+            piCalculatingProgressViewViewModel.setOfCoords.add((coordX to coordY) to isInCircle)
+
+        }
+
+
+    }
+
     fun drawPoints() {
 
-        setOfCoords.clear()
+        piCalculatingProgressViewViewModel.setOfCoords.clear()
 
         animator.start()
 
@@ -82,10 +98,31 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
     }
 
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+
+        if (piCalculatingProgressViewViewModel.setOfCoords.size > 0) {
+
+            val listSize = piCalculatingProgressViewViewModel.setOfCoords.size
+
+            piCalculatingProgressViewViewModel.setOfCoords.clear()
+
+            for (i in 0..listSize){
+
+                randomInit()
+
+            }
+
+            invalidate()
+
+        }
+
+    }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        for (item in setOfCoords) {
+        for (item in piCalculatingProgressViewViewModel.setOfCoords) {
 
             if (item.second) {
                 canvas?.drawPoint(item.first.first, item.first.second, inTheAreaPointPaint)
@@ -111,10 +148,6 @@ class PiCalculatingProgressView @JvmOverloads constructor(
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-    }
-
-    private fun dpToPx(context: Context, dp: Float): Int {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics).toInt()
     }
 
 }
