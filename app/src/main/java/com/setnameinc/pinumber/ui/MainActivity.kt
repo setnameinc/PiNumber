@@ -2,8 +2,8 @@ package com.setnameinc.pinumber.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import com.setnameinc.pinumber.App
 import com.setnameinc.pinumber.R
@@ -11,10 +11,8 @@ import com.setnameinc.pinumber.common.BaseMainActivity
 import com.setnameinc.pinumber.common.BasePresenter
 import com.setnameinc.pinumber.common.BaseView
 import com.setnameinc.pinumber.presenter.MainActivityPresenter
-import com.setnameinc.pinumber.utils.constants.ViewModel.RESULT_DEFAULT_VALUE
 import com.setnameinc.pinumber.utils.rxutils.RxSearchObservable
 import com.setnameinc.pinumber.viewmodels.ViewModel
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -45,21 +43,77 @@ class MainActivity : BaseMainActivity() {
 
         viewModel = ViewModelProviders.of(this)[ViewModel::class.java]
 
+        initProgressBarListener()
+        initSwitchListener()
         initResultListener()
 
     }
 
-    override fun initResultListener(){
+    override fun initProgressBarListener(){
+        viewModel.progressIsVisible.observe(this, Observer {
+
+            if (it){
+
+                activity_main__progress_bar.setVisible()
+
+            } else {
+
+                activity_main__progress_bar.setInvisible()
+
+            }
+
+        })
+    }
+
+    override fun initSwitchListener() {
+
+        fun setChecked() {
+
+            activity_main__switch_tv.text = "so hot, but slow"
+            viewModel.switchBeautyMod = true
+            activity_main__pi_calc.visibility = View.VISIBLE
+
+        }
+
+        fun setNotChecked() {
+
+            activity_main__switch_tv.text = "ugly, but so fast"
+            viewModel.switchBeautyMod = false
+            activity_main__pi_calc.visibility = View.INVISIBLE
+
+        }
+
+        if (viewModel.switchBeautyMod) {
+
+            setChecked()
+
+        } else {
+
+            setNotChecked()
+
+        }
+
+        activity_main__switch.setOnCheckedChangeListener { _, isChecked ->
+
+            if (isChecked) {
+
+                setChecked()
+
+            } else {
+
+                setNotChecked()
+
+            }
+
+        }
+    }
+
+    override fun initResultListener() {
         viewModel.result.observe(this, Observer {
 
             activity_main__result_field.text = "$it"
 
         })
-    }
-
-    override fun onStop() {
-        activity_main__pi_calc.detach()
-        super.onStop()
     }
 
     override fun initEditTextListener(): Disposable = RxSearchObservable.fromView(activity_main__til_field)
@@ -74,7 +128,7 @@ class MainActivity : BaseMainActivity() {
 
             Log.i(TAG, "EditorListener | listener invoked")
 
-            presenter.updateAmountOfNumbers(it.toInt())
+            presenter.updateAmountOfNumbers(it.toLong())
 
             viewModel.amount = it.toLong()
 
@@ -85,25 +139,55 @@ class MainActivity : BaseMainActivity() {
 
         viewModel.result.value = result
 
-        activity_main__pi_calc.detach()
-
         Log.i(TAG, "SaveResult | save result = $result")
 
     }
 
-    override fun hidePiProgress() {
+    override fun hideProgress() {
 
         Log.i(TAG, "ProgressBar | hide progress bar")
 
-        activity_main__pi_calc.stopDrawing()
+        if (viewModel.switchBeautyMod) {
+
+            activity_main__pi_calc.stopDrawing()
+
+        } else {
+
+            viewModel.progressIsVisible.value = false
+
+        }
+
+        activity_main__switch.isClickable = true
 
     }
 
-    override fun showPiProgress() {
+    override fun showProgress() {
 
         Log.i(TAG, "ProgressBar | show progress bar")
 
-        activity_main__pi_calc.drawPoints()
+        if (viewModel.switchBeautyMod) {
+
+            activity_main__pi_calc.drawPoints()
+
+        } else {
+
+            viewModel.progressIsVisible.value = true
+
+        }
+
+        activity_main__switch.isClickable = false
+
+    }
+
+    private fun View.setVisible(){
+
+        this.visibility = View.VISIBLE
+
+    }
+
+    private fun View.setInvisible(){
+
+        this.visibility = View.INVISIBLE
 
     }
 
@@ -113,13 +197,15 @@ interface MainActivityView : BaseView, ViewModelInteractions, MainActivityViewPi
 
     fun initEditTextListener(): Disposable
     fun initResultListener()
+    fun initSwitchListener()
+    fun initProgressBarListener()
 
 }
 
 interface MainActivityViewPiProgress {
 
-    fun showPiProgress()
-    fun hidePiProgress()
+    fun showProgress()
+    fun hideProgress()
 
 }
 

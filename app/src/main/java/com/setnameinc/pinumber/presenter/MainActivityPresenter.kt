@@ -10,14 +10,15 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import javax.inject.Inject
 
-class MainActivityPresenter @Inject constructor(private val piResolver: PiResolver) : BaseMainActivityPresenter<MainActivityView>(),
+class MainActivityPresenter @Inject constructor(private val piResolver: PiResolver) :
+    BaseMainActivityPresenter<MainActivityView>(),
     MainActivityPresenterInterface {
 
     private val TAG = this::class.java.simpleName
 
     private val disposeBag = CompositeDisposable()
 
-    private val amountOfNumbers = PublishSubject.create<Int>()
+    private val amountOfNumbers = PublishSubject.create<Long>()
 
     init {
 
@@ -25,9 +26,9 @@ class MainActivityPresenter @Inject constructor(private val piResolver: PiResolv
 
     }
 
-    override fun updateAmountOfNumbers(int: Int) {
+    override fun updateAmountOfNumbers(long: Long) {
 
-        amountOfNumbers.onNext(int)
+        amountOfNumbers.onNext(long)
 
     }
 
@@ -52,14 +53,14 @@ class MainActivityPresenter @Inject constructor(private val piResolver: PiResolv
 
     }
 
-    override fun showPiProgress() {
+    override fun showProgress() {
         Log.i(TAG, "is loading")
-        view.showPiProgress()
+        view.showProgress()
     }
 
-    override fun hidePiProgress() {
+    override fun hideProgress() {
         Log.i(TAG, "isn't loading")
-        view.hidePiProgress()
+        view.hideProgress()
     }
 
     override fun saveResult(result: Double) {
@@ -73,14 +74,14 @@ interface MainActivityPresenterInterface : MainActivityPresenterPiResolver {
 
     fun subscribeToAmountOfNumbers(): Disposable
 
-    fun updateAmountOfNumbers(int: Int)
+    fun updateAmountOfNumbers(long: Long)
 
 }
 
 interface MainActivityPresenterPiResolver {
 
-    fun showPiProgress()
-    fun hidePiProgress()
+    fun showProgress()
+    fun hideProgress()
     fun saveResult(result: Double)
 
 }
