@@ -18,7 +18,7 @@ class PiCalculatingProgressViewViewModel : ViewModel(){
     //it is using for storing all coroutines links
     val compositeJob = CompositeJob()
 
-    //
+    //using for control items generator
     var isSetMax = false
 
 }
