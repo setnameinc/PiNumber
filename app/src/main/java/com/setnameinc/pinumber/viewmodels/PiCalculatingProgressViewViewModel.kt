@@ -12,9 +12,6 @@ class PiCalculatingProgressViewViewModel : ViewModel(){
     //using to detect piView state
     var isDrawingNow:Boolean = false
 
-    //using for detecting rotation changing
-    var screenOrientation:Int = Configuration.ORIENTATION_PORTRAIT
-
     //it is using for storing all coroutines links
     val compositeJob = CompositeJob()
 

@@ -155,12 +155,10 @@ class PiCalculatingProgress @JvmOverloads constructor(
 
     }
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
+    override fun onLayout(changedOrientation: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changedOrientation, left, top, right, bottom)
 
-        if (viewModel.setOfCoordinates.size > 0 && viewModel.screenOrientation != resources.configuration.orientation) {
-
-            viewModel.screenOrientation = resources.configuration.orientation
+        if (viewModel.setOfCoordinates.size > 0 && changedOrientation) {
 
             recalculateCoordinates()
 
