@@ -97,6 +97,8 @@ class PiCalculatingProgress @JvmOverloads constructor(
 
         viewModel.isDrawingNow = false
 
+        viewModel.isSetMax = false
+
         viewModel.compositeJob.cancel()
 
     }
@@ -119,8 +121,6 @@ class PiCalculatingProgress @JvmOverloads constructor(
     private fun recalculateCoordinates() {
 
         val setOfCoordinatesSize = viewModel.setOfCoordinates.size
-
-        Log.i(TAG, "list six = ${viewModel.setOfCoordinates.size}")
 
         viewModel.setOfCoordinates.clear()
 
@@ -159,6 +159,8 @@ class PiCalculatingProgress @JvmOverloads constructor(
         super.onLayout(changedOrientation, left, top, right, bottom)
 
         if (viewModel.setOfCoordinates.size > 0 && changedOrientation) {
+
+            Log.i(TAG, "OnLayout | list size = ${viewModel.setOfCoordinates.size}")
 
             recalculateCoordinates()
 
