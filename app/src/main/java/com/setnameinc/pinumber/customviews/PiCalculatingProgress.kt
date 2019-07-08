@@ -28,6 +28,8 @@ class PiCalculatingProgress @JvmOverloads constructor(
 
     private val TAG = this::class.java.simpleName
 
+    private val random = Random
+
     private val POINTS_PER_FRAME = 5
     private val FRAMES_PER_SECOND = 12
     private val MAX_AMOUNT_OF_SET = 3000
@@ -137,8 +139,8 @@ class PiCalculatingProgress @JvmOverloads constructor(
 
     private fun generateRandomPoint() {
 
-        val coordX = 2 * Random.nextInt(width).toFloat()
-        val coordY = 2 * Random.nextInt(height).toFloat()
+        val coordX = 2 * random.nextInt(width).toFloat()
+        val coordY = 2 * random.nextInt(height).toFloat()
 
         // speed medium
         val isInCircle = sqrt(

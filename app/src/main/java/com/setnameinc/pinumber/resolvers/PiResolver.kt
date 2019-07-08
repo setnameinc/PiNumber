@@ -10,10 +10,13 @@ import io.reactivex.schedulers.Schedulers
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class PiResolver @Inject constructor() : PiResolverInterface {
 
     private val TAG = this::class.java.simpleName
+
+    private val random = Random
 
     private lateinit var presenterInterface: MainActivityPresenterPiResolver
 
@@ -84,8 +87,8 @@ class PiResolver @Inject constructor() : PiResolverInterface {
         var countInRound = 0
         for (i in 0..long) {
 
-            val randomX = Random().nextFloat()
-            val randomY = Random().nextFloat()
+            val randomX = random.nextFloat()
+            val randomY = random.nextFloat()
 
             if (sqrt(randomX * randomX + randomY * randomY) <= 1) {
 
