@@ -21,9 +21,9 @@ Fifth project
 
   Works both resolving and resolved:
   
-  - <img src="https://github.com/setnameinc/PiNumber/blob/master/rotationin.gif?raw=true" width="360" height="640" />
+  <img src="https://github.com/setnameinc/PiNumber/blob/master/rotationin.gif?raw=true" width="360" height="640" />
   
-  - <img src="https://github.com/setnameinc/PiNumber/blob/master/rotationafter.gif?raw=true" width="360" height="640" />
+  <img src="https://github.com/setnameinc/PiNumber/blob/master/rotationafter.gif?raw=true" width="360" height="640" />
   
 **PiCalculatingProgress**
 
